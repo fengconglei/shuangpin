@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>双拼练习</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #07071a;
+  --card: rgba(255,255,255,0.06);
+  --card-b: rgba(255,255,255,0.14);
+  --purple: #7c6bfc;
+  --purple-d: rgba(124,107,252,0.25);
+  --teal: #2dd4bf;
+  --teal-d: rgba(45,212,191,0.25);
+  --gold: #f5c518;
+  --red: #f87171;
+  --green: #4ade80;
+  --white: rgba(255,255,255,0.92);
+  --dim: rgba(255,255,255,0.45);
+  --dimmer: rgba(255,255,255,0.2);
+  --radius: 18px;
+  --radius-sm: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { height:100%; }
+body {
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--white);
+  font-family:'Noto Sans SC','Space Grotesk',system-ui,sans-serif;
+  overflow-x:hidden;
+  overflow-y:auto;
+}
+
+/* ── Animated background ── */
+.bg {
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background: radial-gradient(ellipse at 20% 20%, #1a0a3e 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, #0a2a3e 0%, transparent 60%),
+              #07071a;
+}
+.orb {
+  position:absolute; border-radius:50%; filter:blur(90px); opacity:0.35;
+  animation:orbFloat 12s ease-in-out infinite;
+}
+.orb1 { width:500px;height:500px; background:radial-gradient(circle,#6c3bfc,transparent); top:-150px;left:-150px; animation-delay:0s; }
+.orb2 { width:400px;height:400px; background:radial-gradient(circle,#2dd4bf,transparent); bottom:-100px;right:-100px; animation-delay:-6s; }
+.orb3 { width:300px;height:300px; background:radial-gradient(circle,#7c2bfc,transparent); top:50%;left:50%;transform:translate(-50%,-50%); animation-delay:-3s; }
+@keyframes orbFloat {
+  0%,100%{ transform:translate(0,0) scale(1); }
+  33%{ transform:translate(25px,-25px) scale(1.06); }
+  66%{ transform:translate(-15px,20px) scale(0.94); }
+}
+.orb3 { animation-name:orbFloat3; }
+@keyframes orbFloat3 {
+  0%,100%{ transform:translate(-50%,-50%) scale(1); }
+  50%{ transform:translate(-50%,-50%) scale(1.15); }
+}
+
+/* ── Layout ── */
+#app { position:relative; z-index:1; min-height:100vh; }
+.screen { display:none; min-height:100vh; padding:24px 16px 40px; animation:fadeIn 0.4s ease; }
+.screen.active { display:flex; flex-direction:column; align-items:center; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── Glass card ── */
+.glass {
+  background:var(--card);
+  border:1px solid var(--card-b);
+  border-radius:var(--radius);
+  backdrop-filter:blur(16px);
+}
+
+/* ── Buttons ── */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:12px 28px; border-radius:50px; border:none; cursor:pointer;
+  font-family:inherit; font-size:15px; font-weight:500; transition:all 0.2s;
+}
+.btn-primary {
+  background:linear-gradient(135deg,#7c6bfc,#5b4de8);
+  color:#fff;
+  box-shadow:0 4px 20px rgba(124,107,252,0.45);
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(124,107,252,0.6); }
+.btn-ghost {
+  background:var(--card); border:1px solid var(--card-b); color:var(--dim);
+}
+.btn-ghost:hover { color:var(--white); border-color:rgba(255,255,255,0.3); }
+.btn-teal {
+  background:linear-gradient(135deg,#2dd4bf,#14b8a6);
+  color:#042f2e;
+  box-shadow:0 4px 20px rgba(45,212,191,0.4);
+}
+.btn-teal:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(45,212,191,0.55); }
+
+/* ═══════════════════════════════════════
+   HOME SCREEN
+═══════════════════════════════════════ */
+#s-home { padding-top:48px; }
+.home-logo {
+  font-size:13px; letter-spacing:3px; color:var(--teal); text-transform:uppercase;
+  margin-bottom:16px; opacity:0.8;
+}
+.home-title {
+  font-size:clamp(40px,8vw,72px); font-weight:900; line-height:1.1;
+  background:linear-gradient(135deg,#fff 30%,#7c6bfc 70%,#2dd4bf 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  margin-bottom:12px; text-align:center;
+}
+.home-sub {
+  color:var(--dim); font-size:16px; margin-bottom:48px; text-align:center;
+}
+.stages-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px; width:100%; max-width:900px;
+}
+.stage-card {
+  padding:28px 24px; border-radius:var(--radius); cursor:pointer;
+  background:var(--card); border:1px solid var(--card-b);
+  backdrop-filter:blur(16px); transition:all 0.25s;
+  position:relative; overflow:hidden;
+}
+.stage-card:hover:not(.locked) {
+  transform:translateY(-4px);
+  border-color:rgba(255,255,255,0.25);
+  box-shadow:0 12px 40px rgba(0,0,0,0.4);
+}
+.stage-card.locked { opacity:0.45; cursor:not-allowed; }
+.stage-card::before {
+  content:''; position:absolute; inset:0; border-radius:inherit;
+  opacity:0; transition:opacity 0.25s;
+}
+.stage-card:hover:not(.locked)::before { opacity:1; }
+.stage-card[data-stage="1"]::before { background:linear-gradient(135deg,rgba(124,107,252,0.1),transparent); }
+.stage-card[data-stage="2"]::before { background:linear-gradient(135deg,rgba(45,212,191,0.1),transparent); }
+.stage-card[data-stage="3"]::before { background:linear-gradient(135deg,rgba(245,197,24,0.1),transparent); }
+.stage-card[data-stage="4"]::before { background:linear-gradient(135deg,rgba(248,113,113,0.1),transparent); }
+.stage-card[data-stage="5"]::before { background:linear-gradient(135deg,rgba(74,222,128,0.1),transparent); }
+.stage-icon { font-size:32px; margin-bottom:12px; }
+.stage-name { font-size:18px; font-weight:700; margin-bottom:6px; }
+.stage-desc { font-size:13px; color:var(--dim); margin-bottom:16px; line-height:1.5; }
+.stage-meta { display:flex; justify-content:space-between; align-items:center; }
+.stage-count { font-size:12px; color:var(--dimmer); }
+.stage-stars { color:var(--gold); font-size:14px; }
+.lock-badge {
+  position:absolute; top:16px; right:16px;
+  background:rgba(255,255,255,0.1); border-radius:20px;
+  padding:4px 10px; font-size:12px; color:var(--dim);
+}
+.home-tip {
+  margin-top:32px; font-size:13px; color:var(--dimmer); text-align:center;
+  max-width:500px;
+}
+.home-actions { display:flex; gap:12px; margin-bottom:36px; }
+
+/* ═══════════════════════════════════════
+   REFERENCE SCREEN
+═══════════════════════════════════════ */
+.ref-header { width:100%; max-width:860px; display:flex; align-items:center; gap:16px; margin-bottom:32px; }
+.ref-title { font-size:24px; font-weight:700; }
+.ref-subtitle { font-size:13px; color:var(--dim); }
+.ref-body { width:100%; max-width:860px; }
+.ref-section { margin-bottom:28px; }
+.ref-section-title {
+  font-size:13px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--teal); margin-bottom:14px; opacity:0.8;
+}
+.ref-grid {
+  display:flex; flex-wrap:wrap; gap:8px;
+}
+.ref-chip {
+  background:var(--card); border:1px solid var(--card-b);
+  border-radius:8px; padding:8px 14px;
+  font-size:14px; display:flex; gap:8px; align-items:center;
+}
+.ref-chip .from { color:var(--white); font-weight:600; }
+.ref-chip .arrow { color:var(--dimmer); font-size:12px; }
+.ref-chip .to {
+  background:var(--purple-d); color:var(--purple);
+  border-radius:4px; padding:1px 6px; font-size:13px; font-weight:700;
+  font-family:'Space Grotesk',monospace;
+}
+.ref-chip.special .to {
+  background:var(--teal-d); color:var(--teal);
+}
+
+/* Keyboard reference */
+.ref-keyboard { margin-top:8px; }
+.ref-kb-row { display:flex; gap:6px; margin-bottom:6px; justify-content:center; }
+.ref-kb-key {
+  background:var(--card); border:1px solid var(--card-b);
+  border-radius:8px; min-width:60px; padding:8px 6px;
+  text-align:center; display:flex; flex-direction:column;
+  align-items:center; gap:2px;
+}
+.ref-kb-key .k-letter { font-size:15px; font-weight:700; color:var(--white); font-family:'Space Grotesk',monospace; }
+.ref-kb-key .k-final { font-size:10px; color:var(--teal); font-weight:500; }
+.ref-kb-key .k-init { font-size:9px; color:var(--purple); font-weight:500; }
+.ref-kb-key.special-init { border-color:rgba(124,107,252,0.4); }
+
+/* ═══════════════════════════════════════
+   PRACTICE SCREEN
+═══════════════════════════════════════ */
+#s-practice { padding-top:16px; gap:0; }
+.prac-header {
+  width:100%; max-width:760px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:20px; flex-wrap:wrap;
+}
+.prac-header .btn-back { padding:8px 16px; font-size:14px; }
+.prac-stage-info { flex:1; }
+.prac-stage-name { font-size:16px; font-weight:700; }
+.prac-progress-text { font-size:12px; color:var(--dim); }
+.prac-stats { display:flex; gap:16px; align-items:center; }
+.stat-chip {
+  background:var(--card); border:1px solid var(--card-b);
+  border-radius:20px; padding:6px 14px; font-size:13px; font-weight:500;
+}
+.stat-score { color:var(--gold); }
+.stat-streak { color:var(--red); }
+
+/* Progress bar */
+.prac-progress-bar {
+  width:100%; max-width:760px; height:4px;
+  background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;
+  margin-bottom:24px;
+}
+.prac-progress-fill {
+  height:100%; background:linear-gradient(90deg,var(--purple),var(--teal));
+  border-radius:2px; transition:width 0.4s ease;
+}
+
+/* Question card */
+.question-card {
+  width:100%; max-width:760px;
+  background:var(--card); border:1px solid var(--card-b);
+  border-radius:var(--radius); padding:40px 32px 32px;
+  text-align:center; position:relative; margin-bottom:20px;
+  transition:border-color 0.3s;
+}
+.question-card.correct { border-color:rgba(74,222,128,0.5); animation:correctPulse 0.4s ease; }
+.question-card.wrong { border-color:rgba(248,113,113,0.5); animation:wrongShake 0.35s ease; }
+@keyframes correctPulse {
+  0%{box-shadow:none} 50%{box-shadow:0 0 40px rgba(74,222,128,0.3)} 100%{box-shadow:none}
+}
+@keyframes wrongShake {
+  0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)}
+}
+
+.q-type-tag {
+  position:absolute; top:14px; left:20px;
+  font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--dim); opacity:0.7;
+}
+.q-target {
+  font-size:clamp(52px,10vw,88px); font-weight:900;
+  line-height:1.1; margin-bottom:12px;
+  background:linear-gradient(135deg,#fff,rgba(255,255,255,0.7));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.q-pinyin {
+  font-size:20px; color:var(--teal); font-weight:500; margin-bottom:24px;
+  font-family:'Space Grotesk',monospace; letter-spacing:1px;
+}
+.q-pinyin.hidden { visibility:hidden; }
+
+/* Input boxes */
+.input-row {
+  display:flex; gap:12px; justify-content:center; align-items:center;
+}
+.input-box {
+  width:64px; height:64px; border-radius:12px;
+  background:rgba(255,255,255,0.05); border:2px solid rgba(255,255,255,0.15);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  transition:all 0.2s;
+}
+.input-box .ib-key {
+  font-size:26px; font-weight:700; color:var(--white);
+  font-family:'Space Grotesk',monospace; line-height:1;
+}
+.input-box .ib-label { font-size:10px; color:var(--dim); }
+.input-box.filled { border-color:var(--purple); background:rgba(124,107,252,0.15); }
+.input-box.correct { border-color:var(--green); background:rgba(74,222,128,0.15); }
+.input-box.wrong { border-color:var(--red); background:rgba(248,113,113,0.15); }
+.input-box.pending { border-color:rgba(255,255,255,0.25); }
+
+.input-sep { font-size:24px; color:var(--dimmer); }
+
+/* Feedback toast */
+.feedback-toast {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  background:rgba(0,0,0,0.8); border-radius:12px; padding:12px 24px;
+  font-size:18px; font-weight:700; opacity:0; pointer-events:none;
+  transition:opacity 0.2s; z-index:10;
+}
+.feedback-toast.show { opacity:1; }
+.feedback-toast.ok { color:var(--green); }
+.feedback-toast.err { color:var(--red); }
+
+/* Virtual Keyboard */
+.virtual-keyboard {
+  width:100%; max-width:760px; padding:16px;
+  background:var(--card); border:1px solid var(--card-b);
+  border-radius:var(--radius); backdrop-filter:blur(16px);
+  margin-top:4px;
+}
+.vk-row { display:flex; gap:5px; justify-content:center; margin-bottom:5px; }
+.vk-key {
+  background:rgba(255,255,255,0.07);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:8px;
+  flex:1; max-width:62px; min-height:54px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:2px; cursor:pointer; transition:all 0.15s; user-select:none;
+  padding:4px;
+}
+.vk-key:hover { background:rgba(255,255,255,0.12); }
+.vk-key .vk-letter {
+  font-size:16px; font-weight:700; color:var(--white);
+  font-family:'Space Grotesk',monospace; line-height:1;
+}
+.vk-key .vk-final { font-size:9px; color:var(--teal); font-weight:500; text-align:center; line-height:1.2; }
+.vk-key .vk-init { font-size:8px; color:var(--purple); font-weight:600; }
+.vk-key.highlight-correct {
+  background:rgba(74,222,128,0.25) !important;
+  border-color:var(--green) !important;
+  box-shadow:0 0 16px rgba(74,222,128,0.4);
+  transform:scale(1.08);
+}
+.vk-key.highlight-hint {
+  background:rgba(245,197,24,0.2) !important;
+  border-color:var(--gold) !important;
+  box-shadow:0 0 14px rgba(245,197,24,0.35);
+  animation:hintPulse 0.8s ease infinite;
+}
+@keyframes hintPulse {
+  0%,100%{box-shadow:0 0 14px rgba(245,197,24,0.35)} 50%{box-shadow:0 0 24px rgba(245,197,24,0.6)}
+}
+.vk-key.highlight-wrong {
+  background:rgba(248,113,113,0.25) !important;
+  border-color:var(--red) !important;
+  box-shadow:0 0 16px rgba(248,113,113,0.4);
+}
+.vk-key.highlight-pressed {
+  background:rgba(124,107,252,0.3) !important;
+  border-color:var(--purple) !important;
+  transform:scale(0.93);
+}
+.vk-key.special-init { border-color:rgba(124,107,252,0.3); }
+
+/* ═══════════════════════════════════════
+   RESULT SCREEN
+═══════════════════════════════════════ */
+#s-result { justify-content:center; }
+.result-card {
+  max-width:480px; width:100%; padding:48px 40px;
+  background:var(--card); border:1px solid var(--card-b);
+  border-radius:24px; backdrop-filter:blur(20px);
+  text-align:center;
+}
+.result-emoji { font-size:64px; margin-bottom:16px; }
+.result-title { font-size:32px; font-weight:900; margin-bottom:8px; }
+.result-subtitle { color:var(--dim); margin-bottom:32px; font-size:15px; }
+.result-stats {
+  display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  margin-bottom:36px;
+}
+.result-stat {
+  background:rgba(255,255,255,0.05); border-radius:12px; padding:18px;
+}
+.result-stat-val { font-size:32px; font-weight:900; color:var(--white); }
+.result-stat-label { font-size:12px; color:var(--dim); margin-top:4px; }
+.result-actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+
+/* ═══════════════════════════════════════
+   SPEED CHALLENGE
+═══════════════════════════════════════ */
+.speed-timer {
+  font-size:48px; font-weight:900; color:var(--gold);
+  font-family:'Space Grotesk',monospace; margin-bottom:8px;
+}
+.speed-timer.low { color:var(--red); animation:timerPulse 0.5s ease infinite; }
+@keyframes timerPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+/* ═══════════════════════════════════════
+   PARTICLES
+═══════════════════════════════════════ */
+.particle {
+  position:fixed; pointer-events:none; z-index:999;
+  border-radius:50%; animation:particleFly 0.8s ease-out forwards;
+}
+@keyframes particleFly {
+  0%{ opacity:1; transform:translate(0,0) scale(1); }
+  100%{ opacity:0; transform:translate(var(--tx),var(--ty)) scale(0); }
+}
+
+/* ═══════════════════════════════════════
+   SCROLL & RESPONSIVE
+═══════════════════════════════════════ */
+@media(max-width:600px) {
+  .vk-key { max-width:32px; min-height:44px; }
+  .vk-key .vk-letter { font-size:13px; }
+  .vk-key .vk-final { font-size:7px; }
+  .stages-grid { grid-template-columns:1fr 1fr; }
+  .home-title { font-size:36px; }
+}
+</style>
+</head>
+<body>
+<div class="bg">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+</div>
+<div id="app">
+
+<!-- ═══════ HOME ═══════ -->
+<div id="s-home" class="screen active">
+  <div class="home-logo">小鹤双拼 · Xiaohe Scheme</div>
+  <h1 class="home-title">双拼练习</h1>
+  <p class="home-sub">从零开始，系统掌握双拼输入法</p>
+  <div class="home-actions">
+    <button class="btn btn-ghost" onclick="showScreen('s-ref')">📖 查看键位表</button>
+  </div>
+  <div class="stages-grid" id="stages-grid"></div>
+  <p class="home-tip">💡 建议按顺序练习，先掌握声母韵母，再进行音节和词语练习</p>
+</div>
+
+<!-- ═══════ REFERENCE ═══════ -->
+<div id="s-ref" class="screen">
+  <div class="ref-header">
+    <button class="btn btn-ghost" onclick="showScreen('s-home')">← 返回</button>
+    <div>
+      <div class="ref-title">小鹤双拼键位表</div>
+      <div class="ref-subtitle">Xiaohe Shuangpin Layout</div>
+    </div>
+  </div>
+  <div class="ref-body">
+    <div class="ref-section">
+      <div class="ref-section-title">特殊声母</div>
+      <div class="ref-grid" id="ref-initials"></div>
+    </div>
+    <div class="ref-section">
+      <div class="ref-section-title">韵母键位</div>
+      <div class="ref-keyboard" id="ref-keyboard"></div>
+    </div>
+    <div class="ref-section">
+      <div class="ref-section-title">零声母规则</div>
+      <div class="ref-grid" id="ref-zero"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ PRACTICE ═══════ -->
+<div id="s-practice" class="screen">
+  <div class="prac-header">
+    <button class="btn btn-ghost btn-back" onclick="exitPractice()">← 退出</button>
+    <div class="prac-stage-info">
+      <div class="prac-stage-name" id="prac-stage-name">声母练习</div>
+      <div class="prac-progress-text" id="prac-progress-text">0 / 0</div>
+    </div>
+    <div class="prac-stats">
+      <div class="stat-chip stat-score" id="stat-score">★ 0</div>
+      <div class="stat-chip stat-streak" id="stat-streak">🔥 0</div>
+    </div>
+  </div>
+  <div class="prac-progress-bar">
+    <div class="prac-progress-fill" id="prac-progress-fill" style="width:0%"></div>
+  </div>
+
+  <div class="question-card" id="question-card">
+    <div class="q-type-tag" id="q-type-tag">声母</div>
+    <div class="q-target" id="q-target">zh</div>
+    <div class="q-pinyin" id="q-pinyin">zhong</div>
+    <div class="input-row" id="input-row">
+      <div class="input-box" id="ib1">
+        <div class="ib-key" id="ib1-key">?</div>
+        <div class="ib-label" id="ib1-label"></div>
+      </div>
+      <div class="input-sep" id="input-sep">+</div>
+      <div class="input-box" id="ib2">
+        <div class="ib-key" id="ib2-key">?</div>
+        <div class="ib-label" id="ib2-label"></div>
+      </div>
+    </div>
+    <div class="feedback-toast" id="feedback-toast"></div>
+  </div>
+
+  <div class="virtual-keyboard" id="virtual-keyboard"></div>
+
+  <div style="margin-top:12px; font-size:12px; color:var(--dimmer); text-align:center;">
+    直接键盘输入 · 或点击上方按键
+  </div>
+</div>
+
+<!-- ═══════ RESULT ═══════ -->
+<div id="s-result" class="screen">
+  <div class="result-card">
+    <div class="result-emoji" id="result-emoji">🎉</div>
+    <div class="result-title" id="result-title">练习完成！</div>
+    <div class="result-subtitle" id="result-subtitle">继续加油</div>
+    <div class="result-stats">
+      <div class="result-stat">
+        <div class="result-stat-val" id="res-score">0</div>
+        <div class="result-stat-label">得分</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="res-acc">0%</div>
+        <div class="result-stat-label">正确率</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="res-total">0</div>
+        <div class="result-stat-label">题目数</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-val" id="res-streak">0</div>
+        <div class="result-stat-label">最长连击</div>
+      </div>
+    </div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="showScreen('s-home')">← 返回首页</button>
+      <button class="btn btn-primary" id="res-retry-btn" onclick="retryStage()">再来一次 ↺</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ═══════════════════════════════════════
+//  小鹤双拼 DATA
+// ═══════════════════════════════════════
+const XH = {
+  // special initials: zh→v, ch→i, sh→u
+  specialInitials: { zh:'v', ch:'i', sh:'u' },
+
+  // finals map: final → key
+  finals: {
+    a:'a', o:'o', e:'e', i:'i', u:'u', v:'v',
+    ai:'d', ei:'w', ao:'c', ou:'z',
+    an:'j', en:'f', ang:'h', eng:'g', er:'r',
+    ia:'x', iao:'n', ie:'p', iu:'q', iou:'q',
+    ian:'m', iang:'l', ing:'k', iong:'s', 'in':'b',
+    ua:'x', uo:'o', uai:'k', ui:'v', uei:'v',
+    uan:'r', uang:'l', ong:'s', un:'y', ueng:'y',
+    ue:'t', ve:'t', van:'r', vn:'y'
+  },
+
+  // key → finals label (for keyboard display)
+  keyFinals: {
+    q:'iu', w:'ei', e:'e', r:'uan', t:'üe',
+    y:'un', u:'u', i:'i', o:'uo', p:'ie',
+    a:'a', s:'ong', d:'ai', f:'en', g:'eng',
+    h:'ang', j:'an', k:'ing', l:'iang',
+    z:'ou', x:'ia', c:'ao', v:'ü', b:'in',
+    n:'iao', m:'ian'
+  },
+
+  // keys that are also special initials
+  specialInitMap: { u:'sh', i:'ch', v:'zh' }
+};
+
+// ─── Initials practice items ───
+const INITIALS_ITEMS = [
+  {show:'b',  key:'b',  hint:'声母 b → 键 B'},
+  {show:'p',  key:'p',  hint:'声母 p → 键 P'},
+  {show:'m',  key:'m',  hint:'声母 m → 键 M'},
+  {show:'f',  key:'f',  hint:'声母 f → 键 F'},
+  {show:'d',  key:'d',  hint:'声母 d → 键 D'},
+  {show:'t',  key:'t',  hint:'声母 t → 键 T'},
+  {show:'n',  key:'n',  hint:'声母 n → 键 N'},
+  {show:'l',  key:'l',  hint:'声母 l → 键 L'},
+  {show:'g',  key:'g',  hint:'声母 g → 键 G'},
+  {show:'k',  key:'k',  hint:'声母 k → 键 K'},
+  {show:'h',  key:'h',  hint:'声母 h → 键 H'},
+  {show:'j',  key:'j',  hint:'声母 j → 键 J'},
+  {show:'q',  key:'q',  hint:'声母 q → 键 Q'},
+  {show:'x',  key:'x',  hint:'声母 x → 键 X'},
+  {show:'zh', key:'v',  hint:'声母 zh → 键 V（特殊！）', special:true},
+  {show:'ch', key:'i',  hint:'声母 ch → 键 I（特殊！）', special:true},
+  {show:'sh', key:'u',  hint:'声母 sh → 键 U（特殊！）', special:true},
+  {show:'r',  key:'r',  hint:'声母 r → 键 R'},
+  {show:'z',  key:'z',  hint:'声母 z → 键 Z'},
+  {show:'c',  key:'c',  hint:'声母 c → 键 C'},
+  {show:'s',  key:'s',  hint:'声母 s → 键 S'},
+  {show:'y',  key:'y',  hint:'声母 y → 键 Y'},
+  {show:'w',  key:'w',  hint:'声母 w → 键 W'},
+];
+
+// ─── Finals practice items ───
+const FINALS_ITEMS = [
+  {show:'a',    key:'a', hint:'韵母 a → 键 A'},
+  {show:'o',    key:'o', hint:'韵母 o → 键 O'},
+  {show:'e',    key:'e', hint:'韵母 e → 键 E'},
+  {show:'i',    key:'i', hint:'韵母 i → 键 I'},
+  {show:'u',    key:'u', hint:'韵母 u → 键 U'},
+  {show:'ü(v)', key:'v', hint:'韵母 ü → 键 V'},
+  {show:'ai',   key:'d', hint:'韵母 ai → 键 D'},
+  {show:'ei',   key:'w', hint:'韵母 ei → 键 W'},
+  {show:'ao',   key:'c', hint:'韵母 ao → 键 C'},
+  {show:'ou',   key:'z', hint:'韵母 ou → 键 Z'},
+  {show:'an',   key:'j', hint:'韵母 an → 键 J'},
+  {show:'en',   key:'f', hint:'韵母 en → 键 F'},
+  {show:'ang',  key:'h', hint:'韵母 ang → 键 H'},
+  {show:'eng',  key:'g', hint:'韵母 eng → 键 G'},
+  {show:'er',   key:'r', hint:'韵母 er → 键 R'},
+  {show:'ia',   key:'x', hint:'韵母 ia → 键 X'},
+  {show:'iao',  key:'n', hint:'韵母 iao → 键 N'},
+  {show:'ie',   key:'p', hint:'韵母 ie → 键 P'},
+  {show:'iu',   key:'q', hint:'韵母 iu → 键 Q'},
+  {show:'in',   key:'b', hint:'韵母 in → 键 B'},
+  {show:'ian',  key:'m', hint:'韵母 ian → 键 M'},
+  {show:'iang', key:'l', hint:'韵母 iang → 键 L'},
+  {show:'ing',  key:'k', hint:'韵母 ing → 键 K'},
+  {show:'iong', key:'s', hint:'韵母 iong → 键 S'},
+  {show:'ua',   key:'x', hint:'韵母 ua → 键 X（同 ia）'},
+  {show:'uo',   key:'o', hint:'韵母 uo → 键 O'},
+  {show:'uai',  key:'k', hint:'韵母 uai → 键 K（同 ing）'},
+  {show:'ui',   key:'v', hint:'韵母 ui → 键 V'},
+  {show:'uan',  key:'r', hint:'韵母 uan → 键 R'},
+  {show:'uang', key:'l', hint:'韵母 uang → 键 L（同 iang）'},
+  {show:'ong',  key:'s', hint:'韵母 ong → 键 S（同 iong）'},
+  {show:'un',   key:'y', hint:'韵母 un → 键 Y'},
+  {show:'üe',   key:'t', hint:'韵母 üe → 键 T'},
+];
+
+// ─── Syllables practice items (pinyin → two keys) ───
+const SYLLABLES_ITEMS = [
+  // b-
+  {pinyin:'ba',   sp:'ba', desc:'声母b + 韵母a'},
+  {pinyin:'ban',  sp:'bj', desc:'声母b + 韵母an'},
+  {pinyin:'bang', sp:'bh', desc:'声母b + 韵母ang'},
+  {pinyin:'bin',  sp:'bb', desc:'声母b + 韵母in'},
+  {pinyin:'bing', sp:'bk', desc:'声母b + 韵母ing'},
+  // p-
+  {pinyin:'pao',  sp:'pc', desc:'声母p + 韵母ao'},
+  {pinyin:'ping', sp:'pk', desc:'声母p + 韵母ing'},
+  {pinyin:'pie',  sp:'pp', desc:'声母p + 韵母ie'},
+  // m-
+  {pinyin:'ma',   sp:'ma', desc:'声母m + 韵母a'},
+  {pinyin:'mao',  sp:'mc', desc:'声母m + 韵母ao'},
+  {pinyin:'mei',  sp:'mw', desc:'声母m + 韵母ei'},
+  {pinyin:'men',  sp:'mf', desc:'声母m + 韵母en'},
+  {pinyin:'ming', sp:'mk', desc:'声母m + 韵母ing'},
+  // f-
+  {pinyin:'fa',   sp:'fa', desc:'声母f + 韵母a'},
+  {pinyin:'fei',  sp:'fw', desc:'声母f + 韵母ei'},
+  {pinyin:'fen',  sp:'ff', desc:'声母f + 韵母en'},
+  {pinyin:'feng', sp:'fg', desc:'声母f + 韵母eng'},
+  // d-
+  {pinyin:'da',   sp:'da', desc:'声母d + 韵母a'},
+  {pinyin:'dai',  sp:'dd', desc:'声母d + 韵母ai'},
+  {pinyin:'dao',  sp:'dc', desc:'声母d + 韵母ao'},
+  {pinyin:'de',   sp:'de', desc:'声母d + 韵母e'},
+  {pinyin:'dian', sp:'dm', desc:'声母d + 韵母ian'},
+  // t-
+  {pinyin:'ta',   sp:'ta', desc:'声母t + 韵母a'},
+  {pinyin:'tian', sp:'tm', desc:'声母t + 韵母ian'},
+  {pinyin:'ting', sp:'tk', desc:'声母t + 韵母ing'},
+  // n-
+  {pinyin:'na',   sp:'na', desc:'声母n + 韵母a'},
+  {pinyin:'nian', sp:'nm', desc:'声母n + 韵母ian'},
+  {pinyin:'ning', sp:'nk', desc:'声母n + 韵母ing'},
+  // l-
+  {pinyin:'lai',  sp:'ld', desc:'声母l + 韵母ai'},
+  {pinyin:'lan',  sp:'lj', desc:'声母l + 韵母an'},
+  {pinyin:'liang',sp:'ll', desc:'声母l + 韵母iang'},
+  {pinyin:'ling', sp:'lk', desc:'声母l + 韵母ing'},
+  // g-
+  {pinyin:'ga',   sp:'ga', desc:'声母g + 韵母a'},
+  {pinyin:'gao',  sp:'gc', desc:'声母g + 韵母ao'},
+  {pinyin:'guo',  sp:'go', desc:'声母g + 韵母uo'},
+  {pinyin:'geng', sp:'gg', desc:'声母g + 韵母eng'},
+  // k-
+  {pinyin:'kai',  sp:'kd', desc:'声母k + 韵母ai'},
+  {pinyin:'kuai', sp:'kk', desc:'声母k + 韵母uai（连续双击k）'},
+  {pinyin:'kuan', sp:'kr', desc:'声母k + 韵母uan'},
+  // h-
+  {pinyin:'hao',  sp:'hc', desc:'声母h + 韵母ao'},
+  {pinyin:'han',  sp:'hj', desc:'声母h + 韵母an'},
+  {pinyin:'hua',  sp:'hx', desc:'声母h + 韵母ua'},
+  {pinyin:'huang',sp:'hl', desc:'声母h + 韵母uang'},
+  // j-
+  {pinyin:'ji',   sp:'ji', desc:'声母j + 韵母i'},
+  {pinyin:'jian', sp:'jm', desc:'声母j + 韵母ian'},
+  {pinyin:'jiang',sp:'jl', desc:'声母j + 韵母iang'},
+  {pinyin:'jing', sp:'jk', desc:'声母j + 韵母ing'},
+  // q-
+  {pinyin:'qi',   sp:'qi', desc:'声母q + 韵母i'},
+  {pinyin:'qian', sp:'qm', desc:'声母q + 韵母ian'},
+  {pinyin:'qing', sp:'qk', desc:'声母q + 韵母ing'},
+  // x-
+  {pinyin:'xi',   sp:'xi', desc:'声母x + 韵母i'},
+  {pinyin:'xian', sp:'xm', desc:'声母x + 韵母ian'},
+  {pinyin:'xiao', sp:'xn', desc:'声母x + 韵母iao'},
+  {pinyin:'xue',  sp:'xt', desc:'声母x + 韵母üe'},
+  // zh-
+  {pinyin:'zhi',  sp:'vi', desc:'声母zh(v) + 韵母i'},
+  {pinyin:'zhe',  sp:'ve', desc:'声母zh(v) + 韵母e'},
+  {pinyin:'zhong',sp:'vs', desc:'声母zh(v) + 韵母ong'},
+  {pinyin:'zhang',sp:'vh', desc:'声母zh(v) + 韵母ang'},
+  {pinyin:'zhuan',sp:'vr', desc:'声母zh(v) + 韵母uan'},
+  // ch-
+  {pinyin:'chi',  sp:'ii', desc:'声母ch(i) + 韵母i'},
+  {pinyin:'chang',sp:'ih', desc:'声母ch(i) + 韵母ang'},
+  {pinyin:'cheng',sp:'ig', desc:'声母ch(i) + 韵母eng'},
+  // sh-
+  {pinyin:'shi',  sp:'ui', desc:'声母sh(u) + 韵母i'},
+  {pinyin:'shang',sp:'uh', desc:'声母sh(u) + 韵母ang'},
+  {pinyin:'shen', sp:'uf', desc:'声母sh(u) + 韵母en'},
+  // r-
+  {pinyin:'ren',  sp:'rf', desc:'声母r + 韵母en'},
+  {pinyin:'ruo',  sp:'ro', desc:'声母r + 韵母uo'},
+  // z-
+  {pinyin:'zi',   sp:'zi', desc:'声母z + 韵母i'},
+  {pinyin:'zuo',  sp:'zo', desc:'声母z + 韵母uo'},
+  {pinyin:'zai',  sp:'zd', desc:'声母z + 韵母ai'},
+  // c-
+  {pinyin:'ci',   sp:'ci', desc:'声母c + 韵母i'},
+  {pinyin:'cuo',  sp:'co', desc:'声母c + 韵母uo'},
+  // s-
+  {pinyin:'si',   sp:'si', desc:'声母s + 韵母i'},
+  {pinyin:'suo',  sp:'so', desc:'声母s + 韵母uo'},
+];
+
+// ─── Words practice items ───
+const WORDS_ITEMS = [
+  {char:'中', pinyin:'zhōng', sp:'vs'},
+  {char:'国', pinyin:'guó',   sp:'go'},
+  {char:'人', pinyin:'rén',   sp:'rf'},
+  {char:'大', pinyin:'dà',    sp:'da'},
+  {char:'好', pinyin:'hǎo',   sp:'hc'},
+  {char:'你', pinyin:'nǐ',    sp:'ni'},
+  {char:'我', pinyin:'wǒ',    sp:'wo'},
+  {char:'是', pinyin:'shì',   sp:'ui'},
+  {char:'的', pinyin:'de',    sp:'de'},
+  {char:'在', pinyin:'zài',   sp:'zd'},
+  {char:'有', pinyin:'yǒu',   sp:'yz'},
+  {char:'这', pinyin:'zhè',   sp:'ve'},
+  {char:'来', pinyin:'lái',   sp:'ld'},
+  {char:'上', pinyin:'shàng', sp:'uh'},
+  {char:'不', pinyin:'bù',    sp:'bu'},
+  {char:'他', pinyin:'tā',    sp:'ta'},
+  {char:'一', pinyin:'yī',    sp:'yi'},
+  {char:'了', pinyin:'le',    sp:'le'},
+  {char:'没', pinyin:'méi',   sp:'mw'},
+  {char:'都', pinyin:'dōu',   sp:'dz'},
+  {char:'很', pinyin:'hěn',   sp:'hf'},
+  {char:'知', pinyin:'zhī',   sp:'vi'},
+  {char:'道', pinyin:'dào',   sp:'dc'},
+  {char:'什', pinyin:'shén',  sp:'uf'},
+  {char:'么', pinyin:'me',    sp:'me'},
+  {char:'个', pinyin:'gè',    sp:'ge'},
+  {char:'能', pinyin:'néng',  sp:'ng'},
+  {char:'说', pinyin:'shuō',  sp:'uo'},
+  {char:'会', pinyin:'huì',   sp:'hv'},
+  {char:'想', pinyin:'xiǎng', sp:'xl'},
+  {char:'学', pinyin:'xué',   sp:'xt'},
+  {char:'习', pinyin:'xí',    sp:'xi'},
+  {char:'文', pinyin:'wén',   sp:'wf'},
+  {char:'字', pinyin:'zì',    sp:'zi'},
+  {char:'用', pinyin:'yòng',  sp:'ys'},
+  {char:'练', pinyin:'liàn',  sp:'lm'},
+  {char:'双', pinyin:'shuāng',sp:'ul'},
+  {char:'拼', pinyin:'pīn',   sp:'pb'},
+  {char:'音', pinyin:'yīn',   sp:'yb'},
+  {char:'法', pinyin:'fǎ',    sp:'fa'},
+  {char:'开', pinyin:'kāi',   sp:'kd'},
+  {char:'始', pinyin:'shǐ',   sp:'ui'},
+  {char:'前', pinyin:'qián',  sp:'qm'},
+  {char:'后', pinyin:'hòu',   sp:'hz'},
+  {char:'天', pinyin:'tiān',  sp:'tm'},
+  {char:'地', pinyin:'dì',    sp:'di'},
+  {char:'生', pinyin:'shēng', sp:'ug'},
+  {char:'活', pinyin:'huó',   sp:'ho'},
+  {char:'长', pinyin:'cháng', sp:'ih'},
+  {char:'快', pinyin:'kuài',  sp:'kk'},
+  {char:'慢', pinyin:'màn',   sp:'mj'},
+  {char:'进', pinyin:'jìn',   sp:'jb'},
+  {char:'步', pinyin:'bù',    sp:'bu'},
+  {char:'加', pinyin:'jiā',   sp:'jx'},
+  {char:'油', pinyin:'yóu',   sp:'yz'},
+  {char:'打', pinyin:'dǎ',    sp:'da'},
+  {char:'字', pinyin:'zì',    sp:'zi'},
+  {char:'速', pinyin:'sù',    sp:'su'},
+  {char:'度', pinyin:'dù',    sp:'du'},
+  {char:'高', pinyin:'gāo',   sp:'gc'},
+  {char:'低', pinyin:'dī',    sp:'di'},
+  {char:'左', pinyin:'zuǒ',   sp:'zo'},
+  {char:'右', pinyin:'yòu',   sp:'yz'},
+  {char:'手', pinyin:'shǒu',  sp:'uz'},
+  {char:'键', pinyin:'jiàn',  sp:'jm'},
+  {char:'盘', pinyin:'pán',   sp:'pj'},
+  {char:'输', pinyin:'shū',   sp:'uu'},
+  {char:'入', pinyin:'rù',    sp:'ru'},
+  {char:'法', pinyin:'fǎ',    sp:'fa'},
+];
+
+// ═══════════════════════════════════════
+//  STAGE DEFINITIONS
+// ═══════════════════════════════════════
+const STAGES = [
+  {
+    id:1, name:'声母练习', icon:'🔤',
+    desc:'学习声母与键位的对应关系，包括 zh/ch/sh 等特殊声母',
+    count:INITIALS_ITEMS.length, stars:1, type:'initial',
+    items: INITIALS_ITEMS,
+  },
+  {
+    id:2, name:'韵母练习', icon:'🎵',
+    desc:'掌握所有韵母的键位映射，熟悉每个键对应的韵母',
+    count:FINALS_ITEMS.length, stars:2, type:'final',
+    items: FINALS_ITEMS,
+  },
+  {
+    id:3, name:'音节练习', icon:'✨',
+    desc:'完整音节双击练习，输入声母+韵母两个按键',
+    count:SYLLABLES_ITEMS.length, stars:3, type:'syllable',
+    items: SYLLABLES_ITEMS,
+  },
+  {
+    id:4, name:'词语练习', icon:'📖',
+    desc:'看汉字打双拼，巩固常用汉字的双拼输入',
+    count:WORDS_ITEMS.length, stars:4, type:'word',
+    items: WORDS_ITEMS,
+  },
+  {
+    id:5, name:'速度挑战', icon:'⚡',
+    desc:'限时60秒，快速输入随机汉字，挑战最高分',
+    count:'∞', stars:5, type:'speed',
+    items: WORDS_ITEMS,
+    locked: false,
+  },
+];
+
+// ═══════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════
+let state = {
+  currentStage: null,
+  items: [],
+  index: 0,
+  score: 0,
+  streak: 0,
+  maxStreak: 0,
+  correct: 0,
+  total: 0,
+  typed: '',          // keys typed so far for current question
+  waitNext: false,    // waiting to advance to next question
+  keysNeeded: 1,      // 1 for single-key stages, 2 for syllable/word
+  answerKey: '',      // expected key(s)
+  speedTimer: null,
+  speedSeconds: 60,
+  startTime: 0,
+};
+
+// Progress storage
+function getProgress() {
+  try { return JSON.parse(localStorage.getItem('sp_progress') || '{}'); }
+  catch(e) { return {}; }
+}
+function saveProgress(stageId, score) {
+  const p = getProgress();
+  if (!p[stageId] || p[stageId] < score) p[stageId] = score;
+  localStorage.setItem('sp_progress', JSON.stringify(p));
+}
+
+// ═══════════════════════════════════════
+//  KEYBOARD LAYOUT
+// ═══════════════════════════════════════
+const KB_ROWS = [
+  ['q','w','e','r','t','y','u','i','o','p'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['z','x','c','v','b','n','m'],
+];
+
+// ═══════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ═══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════
+//  HOME SCREEN
+// ═══════════════════════════════════════
+function renderHome() {
+  const prog = getProgress();
+  const grid = document.getElementById('stages-grid');
+  grid.innerHTML = STAGES.map(s => {
+    const best = prog[s.id] || 0;
+    const stars = '★'.repeat(s.stars) + '☆'.repeat(5 - s.stars);
+    return `
+    <div class="stage-card ${s.locked?'locked':''}" data-stage="${s.id}"
+         onclick="${s.locked?'':'startStage('+s.id+')'}">
+      ${s.locked ? '<div class="lock-badge">🔒 进行中</div>' : ''}
+      <div class="stage-icon">${s.icon}</div>
+      <div class="stage-name">${s.name}</div>
+      <div class="stage-desc">${s.desc}</div>
+      <div class="stage-meta">
+        <div class="stage-count">${s.count} 题${best?` · 最高 ${best} 分`:''}</div>
+        <div class="stage-stars">${stars}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+//  REFERENCE SCREEN
+// ═══════════════════════════════════════
+function renderReference() {
+  // Special initials
+  const initDiv = document.getElementById('ref-initials');
+  initDiv.innerHTML = Object.entries(XH.specialInitials).map(([ini, key]) =>
+    `<div class="ref-chip special">
+       <span class="from">${ini}</span>
+       <span class="arrow">→</span>
+       <span class="to">${key.toUpperCase()}</span>
+     </div>`
+  ).join('');
+
+  // Keyboard with finals
+  const kbDiv = document.getElementById('ref-keyboard');
+  kbDiv.innerHTML = KB_ROWS.map(row =>
+    `<div class="ref-kb-row">` +
+    row.map(k => {
+      const fin = XH.keyFinals[k] || '';
+      const ini = XH.specialInitMap[k] || '';
+      return `<div class="ref-kb-key ${ini?'special-init':''}">
+        <div class="k-letter">${k.toUpperCase()}</div>
+        ${fin ? `<div class="k-final">${fin}</div>` : ''}
+        ${ini ? `<div class="k-init">${ini}</div>` : ''}
+      </div>`;
+    }).join('') +
+    `</div>`
+  ).join('');
+
+  // Zero initials
+  const zeroMap = [
+    ['a','aa'], ['o','oo'], ['e','ee'],
+    ['ai','ai'], ['ei','ei'], ['ao','ao'], ['ou','ou'],
+    ['an','an'], ['en','en'], ['ang','ah'], ['eng','eg'],
+    ['er','er'], ['yi','yi'], ['wu','wu'], ['yu','yv'],
+  ];
+  const zeroDiv = document.getElementById('ref-zero');
+  zeroDiv.innerHTML = zeroMap.map(([py, sp]) =>
+    `<div class="ref-chip">
+       <span class="from">${py}</span>
+       <span class="arrow">→</span>
+       <span class="to">${sp}</span>
+     </div>`
+  ).join('');
+}
+
+// ═══════════════════════════════════════
+//  VIRTUAL KEYBOARD
+// ═══════════════════════════════════════
+function renderKeyboard() {
+  const kbDiv = document.getElementById('virtual-keyboard');
+  kbDiv.innerHTML = KB_ROWS.map(row =>
+    `<div class="vk-row">` +
+    row.map(k => {
+      const fin = XH.keyFinals[k] || '';
+      const ini = XH.specialInitMap[k] || '';
+      return `<div class="vk-key ${ini?'special-init':''}" id="vk-${k}" data-key="${k}"
+                   onclick="handleVirtualKey('${k}')">
+        <div class="vk-letter">${k.toUpperCase()}</div>
+        ${fin ? `<div class="vk-final">${fin}</div>` : ''}
+        ${ini ? `<div class="vk-init">${ini}</div>` : ''}
+      </div>`;
+    }).join('') +
+    `</div>`
+  ).join('');
+}
+
+function highlightKey(key, cls, duration = 400) {
+  const el = document.getElementById('vk-' + key);
+  if (!el) return;
+  el.classList.add(cls);
+  if (duration > 0) setTimeout(() => el.classList.remove(cls), duration);
+}
+
+function clearKeyHighlights() {
+  document.querySelectorAll('.vk-key').forEach(k => {
+    k.className = k.className.replace(/highlight-\w+/g, '').trim();
+  });
+}
+
+// ═══════════════════════════════════════
+//  PRACTICE ENGINE
+// ═══════════════════════════════════════
+function startStage(stageId) {
+  const stage = STAGES.find(s => s.id === stageId);
+  if (!stage) return;
+
+  state.currentStage = stage;
+  state.items = shuffle([...stage.items]);
+  state.index = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.maxStreak = 0;
+  state.correct = 0;
+  state.total = 0;
+  state.typed = '';
+  state.waitNext = false;
+  state.startTime = Date.now();
+
+  document.getElementById('prac-stage-name').textContent = stage.name;
+  renderKeyboard();
+  showScreen('s-practice');
+
+  if (stage.type === 'speed') {
+    startSpeedMode();
+  } else {
+    showQuestion();
+  }
+}
+
+function showQuestion() {
+  if (state.index >= state.items.length) {
+    endStage();
+    return;
+  }
+
+  clearKeyHighlights();
+  state.typed = '';
+  state.waitNext = false;
+  const item = state.items[state.index];
+  const stage = state.currentStage;
+
+  // Update progress
+  const pct = (state.index / state.items.length) * 100;
+  document.getElementById('prac-progress-fill').style.width = pct + '%';
+  document.getElementById('prac-progress-text').textContent =
+    `${state.index} / ${state.items.length}`;
+  updateStats();
+
+  const qCard = document.getElementById('question-card');
+  qCard.className = 'question-card';
+  document.getElementById('feedback-toast').classList.remove('show');
+
+  if (stage.type === 'initial') {
+    // Single key practice
+    state.keysNeeded = 1;
+    state.answerKey = item.key;
+    document.getElementById('q-type-tag').textContent = item.special ? '特殊声母' : '声母';
+    document.getElementById('q-target').textContent = item.show;
+    document.getElementById('q-pinyin').textContent = `→ 按键 ${item.key.toUpperCase()}`;
+    document.getElementById('q-pinyin').classList.remove('hidden');
+    setSingleKeyMode();
+    if (item.special) highlightKey(item.key, 'highlight-hint', 0);
+
+  } else if (stage.type === 'final') {
+    state.keysNeeded = 1;
+    state.answerKey = item.key;
+    document.getElementById('q-type-tag').textContent = '韵母';
+    document.getElementById('q-target').textContent = item.show;
+    document.getElementById('q-pinyin').textContent = `→ 按键 ${item.key.toUpperCase()}`;
+    document.getElementById('q-pinyin').classList.remove('hidden');
+    setSingleKeyMode();
+
+  } else if (stage.type === 'syllable') {
+    state.keysNeeded = 2;
+    state.answerKey = item.sp;
+    document.getElementById('q-type-tag').textContent = '音节';
+    document.getElementById('q-target').textContent = item.pinyin;
+    document.getElementById('q-pinyin').classList.add('hidden');
+    setDoubleKeyMode('', '');
+
+  } else if (stage.type === 'word' || stage.type === 'speed') {
+    state.keysNeeded = 2;
+    state.answerKey = item.sp;
+    document.getElementById('q-type-tag').textContent = '词语';
+    document.getElementById('q-target').textContent = item.char;
+    document.getElementById('q-pinyin').textContent = item.pinyin;
+    document.getElementById('q-pinyin').classList.remove('hidden');
+    setDoubleKeyMode('', '');
+  }
+}
+
+function setSingleKeyMode() {
+  document.getElementById('input-sep').style.display = 'none';
+  document.getElementById('ib2').style.display = 'none';
+  document.getElementById('ib1').className = 'input-box pending';
+  document.getElementById('ib1-key').textContent = '?';
+  document.getElementById('ib1-label').textContent = '';
+}
+
+function setDoubleKeyMode(k1, k2) {
+  document.getElementById('input-sep').style.display = '';
+  document.getElementById('ib2').style.display = '';
+
+  document.getElementById('ib1').className = 'input-box' + (k1 ? ' filled' : ' pending');
+  document.getElementById('ib1-key').textContent = k1 ? k1.toUpperCase() : '?';
+  document.getElementById('ib1-label').textContent = k1 ? (XH.keyFinals[k1] || XH.specialInitMap[k1] || '') : '';
+
+  document.getElementById('ib2').className = 'input-box' + (k2 ? ' filled' : ' pending');
+  document.getElementById('ib2-key').textContent = k2 ? k2.toUpperCase() : '?';
+  document.getElementById('ib2-label').textContent = k2 ? (XH.keyFinals[k2] || '') : '';
+}
+
+function handleKey(key) {
+  key = key.toLowerCase();
+  if (!/^[a-z]$/.test(key)) return;
+
+  const stage = state.currentStage;
+  if (!stage) return;
+
+  highlightKey(key, 'highlight-pressed', 150);
+
+  // Speed mode: no waitNext, auto-advance on second key
+  if (stage.type === 'speed') {
+    if (state.typed.length === 0) {
+      state.typed = key;
+      setDoubleKeyMode(key, '');
+    } else if (state.typed.length === 1) {
+      state.typed += key;
+      setDoubleKeyMode(state.typed[0], key);
+      handleSpeedAnswer();
+    }
+    return;
+  }
+
+  if (state.waitNext) {
+    advanceQuestion();
+    return;
+  }
+
+  if (state.keysNeeded === 1) {
+    state.typed = key;
+    evaluateAnswer();
+  } else {
+    if (state.typed.length === 0) {
+      state.typed = key;
+      setDoubleKeyMode(key, '');
+    } else if (state.typed.length === 1) {
+      state.typed += key;
+      setDoubleKeyMode(state.typed[0], key);
+      evaluateAnswer();
+    }
+  }
+}
+
+function handleVirtualKey(key) {
+  handleKey(key);
+}
+
+function evaluateAnswer() {
+  const item = state.items[state.index];
+  const correct = state.typed === state.answerKey;
+  state.total++;
+
+  if (correct) {
+    state.correct++;
+    state.score += 10 + state.streak * 2;
+    state.streak++;
+    if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+    showFeedback(true);
+    spawnParticles();
+
+    if (state.keysNeeded === 1) {
+      const ib = document.getElementById('ib1');
+      ib.className = 'input-box correct';
+      document.getElementById('ib1-key').textContent = state.typed.toUpperCase();
+      highlightKey(state.typed, 'highlight-correct', 600);
+    } else {
+      document.getElementById('ib1').className = 'input-box correct';
+      document.getElementById('ib2').className = 'input-box correct';
+      highlightKey(state.typed[0], 'highlight-correct', 600);
+      highlightKey(state.typed[1], 'highlight-correct', 600);
+    }
+
+    document.getElementById('question-card').classList.add('correct');
+  } else {
+    state.streak = 0;
+    showFeedback(false);
+
+    if (state.keysNeeded === 1) {
+      document.getElementById('ib1').className = 'input-box wrong';
+      document.getElementById('ib1-key').textContent = state.typed.toUpperCase();
+      highlightKey(state.typed, 'highlight-wrong', 600);
+    } else {
+      document.getElementById('ib1').className = 'input-box ' + (state.typed.length >= 1 ? 'filled' : 'pending');
+      document.getElementById('ib2').className = 'input-box wrong';
+      highlightKey(state.typed[0], 'highlight-wrong', 600);
+      highlightKey(state.typed[1], 'highlight-wrong', 600);
+    }
+    // Show correct answer on keyboard
+    if (state.keysNeeded === 1) {
+      setTimeout(() => highlightKey(state.answerKey, 'highlight-hint', 1200), 300);
+    } else {
+      setTimeout(() => {
+        highlightKey(state.answerKey[0], 'highlight-hint', 1200);
+        highlightKey(state.answerKey[1], 'highlight-hint', 1200);
+      }, 300);
+    }
+
+    document.getElementById('question-card').classList.add('wrong');
+  }
+
+  updateStats();
+  state.waitNext = true;
+
+  // Auto-advance after a short delay
+  setTimeout(() => {
+    if (state.waitNext) advanceQuestion();
+  }, correct ? 900 : 1500);
+}
+
+function advanceQuestion() {
+  if (!state.waitNext) return;
+  state.index++;
+  showQuestion();
+}
+
+function showFeedback(ok) {
+  const toast = document.getElementById('feedback-toast');
+  const msgs_ok = ['正确！', '太棒了！', '完美！', '继续！', '厉害！'];
+  const msgs_err = ['再试试', '不对哦', '看提示', '加油！'];
+  toast.textContent = ok ? msgs_ok[Math.floor(Math.random()*msgs_ok.length)]
+                         : msgs_err[Math.floor(Math.random()*msgs_err.length)];
+  toast.className = 'feedback-toast show ' + (ok ? 'ok' : 'err');
+  setTimeout(() => toast.classList.remove('show'), 700);
+}
+
+function updateStats() {
+  document.getElementById('stat-score').textContent = `★ ${state.score}`;
+  document.getElementById('stat-streak').textContent = `🔥 ${state.streak}`;
+}
+
+// ═══════════════════════════════════════
+//  SPEED MODE
+// ═══════════════════════════════════════
+function startSpeedMode() {
+  state.speedSeconds = 60;
+  state.items = shuffle([...WORDS_ITEMS, ...WORDS_ITEMS]); // double for speed
+
+  // Replace pinyin display with timer
+  const pinDiv = document.getElementById('q-pinyin');
+  pinDiv.className = 'speed-timer';
+  pinDiv.textContent = '60';
+  document.getElementById('q-type-tag').textContent = '速度挑战';
+
+  showSpeedQuestion();
+
+  state.speedTimer = setInterval(() => {
+    state.speedSeconds--;
+    const timerEl = document.getElementById('q-pinyin');
+    timerEl.textContent = state.speedSeconds;
+    timerEl.className = 'speed-timer' + (state.speedSeconds <= 10 ? ' low' : '');
+    if (state.speedSeconds <= 0) {
+      clearInterval(state.speedTimer);
+      endStage();
+    }
+  }, 1000);
+}
+
+function showSpeedQuestion() {
+  if (state.index >= state.items.length) {
+    state.items = shuffle([...WORDS_ITEMS, ...WORDS_ITEMS]);
+    state.index = 0;
+  }
+  clearKeyHighlights();
+  state.typed = '';
+  state.waitNext = false;
+  state.keysNeeded = 2;
+  const item = state.items[state.index];
+  state.answerKey = item.sp;
+
+  document.getElementById('q-target').textContent = item.char;
+  // keep timer in pinyin slot - don't overwrite it
+  setDoubleKeyMode('', '');
+
+  const qCard = document.getElementById('question-card');
+  qCard.className = 'question-card';
+  document.getElementById('feedback-toast').classList.remove('show');
+
+  const pct = Math.min((state.total / 30) * 100, 100);
+  document.getElementById('prac-progress-fill').style.width = pct + '%';
+  updateStats();
+}
+
+function handleSpeedAnswer() {
+  const item = state.items[state.index];
+  const correct = state.typed === state.answerKey;
+  state.total++;
+
+  if (correct) {
+    state.correct++;
+    state.score += 10 + Math.floor(state.streak / 3) * 5;
+    state.streak++;
+    if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+    spawnParticles();
+    document.getElementById('ib1').className = 'input-box correct';
+    document.getElementById('ib2').className = 'input-box correct';
+    document.getElementById('question-card').classList.add('correct');
+    highlightKey(state.typed[0], 'highlight-correct', 300);
+    highlightKey(state.typed[1], 'highlight-correct', 300);
+  } else {
+    state.streak = 0;
+    document.getElementById('ib2').className = 'input-box wrong';
+    document.getElementById('question-card').classList.add('wrong');
+    highlightKey(state.typed[1], 'highlight-wrong', 300);
+  }
+  updateStats();
+
+  setTimeout(() => {
+    state.index++;
+    if (state.speedSeconds > 0) showSpeedQuestion();
+  }, correct ? 300 : 500);
+}
+
+// ═══════════════════════════════════════
+//  END & RESULTS
+// ═══════════════════════════════════════
+function endStage() {
+  if (state.speedTimer) {
+    clearInterval(state.speedTimer);
+    state.speedTimer = null;
+  }
+  saveProgress(state.currentStage.id, state.score);
+
+  const acc = state.total > 0 ? Math.round((state.correct / state.total) * 100) : 0;
+  let emoji = '😊', title = '不错！', sub = '继续练习，会越来越好';
+  if (acc >= 95 && state.total >= 10) { emoji = '🏆'; title = '完美！'; sub = '太厉害了，几乎没有错误！'; }
+  else if (acc >= 80) { emoji = '🎉'; title = '很棒！'; sub = '掌握得很好，继续保持！'; }
+  else if (acc >= 60) { emoji = '💪'; title = '加油！'; sub = '还有进步空间，多练习几次'; }
+  else { emoji = '📚'; title = '继续学习'; sub = '查看键位表，多加练习'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-subtitle').textContent = sub;
+  document.getElementById('res-score').textContent = state.score;
+  document.getElementById('res-acc').textContent = acc + '%';
+  document.getElementById('res-total').textContent = state.total;
+  document.getElementById('res-streak').textContent = state.maxStreak;
+
+  showScreen('s-result');
+  renderHome(); // refresh home with new best scores
+}
+
+function retryStage() {
+  if (state.currentStage) startStage(state.currentStage.id);
+}
+
+function exitPractice() {
+  if (state.speedTimer) {
+    clearInterval(state.speedTimer);
+    state.speedTimer = null;
+  }
+  showScreen('s-home');
+}
+
+// ═══════════════════════════════════════
+//  PARTICLES
+// ═══════════════════════════════════════
+function spawnParticles() {
+  const colors = ['#7c6bfc','#2dd4bf','#f5c518','#4ade80','#f87171'];
+  const qCard = document.getElementById('question-card');
+  const rect = qCard.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 6 + Math.random() * 8;
+    const angle = (i / 12) * Math.PI * 2 + Math.random() * 0.5;
+    const dist = 60 + Math.random() * 80;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      left:${cx - size/2}px; top:${cy - size/2}px;
+      --tx:${Math.cos(angle)*dist}px;
+      --ty:${Math.sin(angle)*dist - 20}px;
+      animation-duration:${0.6+Math.random()*0.4}s;
+    `;
+    document.body.appendChild(p);
+    p.addEventListener('animationend', () => p.remove());
+  }
+}
+
+// ═══════════════════════════════════════
+//  KEYBOARD INPUT
+// ═══════════════════════════════════════
+document.addEventListener('keydown', (e) => {
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  const screen = document.querySelector('.screen.active');
+  if (!screen || screen.id !== 's-practice') return;
+
+  const key = e.key.toLowerCase();
+  if (key === ' ' || key === 'enter') {
+    e.preventDefault();
+    if (state.waitNext) advanceQuestion();
+    return;
+  }
+  if (key === 'escape') {
+    exitPractice();
+    return;
+  }
+  if (/^[a-z]$/.test(key)) {
+    e.preventDefault();
+    handleKey(key);
+  }
+});
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+function init() {
+  renderHome();
+  renderReference();
+}
+
+init();
+</script>
+</body>
+</html>
