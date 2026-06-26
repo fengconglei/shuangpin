@@ -157,6 +157,13 @@ body {
   max-width:500px;
 }
 .home-actions { display:flex; gap:12px; margin-bottom:36px; }
+.sound-toggle {
+  min-width:104px;
+}
+.sound-toggle.is-off {
+  color:var(--dimmer);
+  border-color:rgba(255,255,255,0.12);
+}
 
 /* ═══════════════════════════════════════
    REFERENCE SCREEN
@@ -426,6 +433,7 @@ body {
   <p class="home-sub">从零开始，系统掌握双拼输入法</p>
   <div class="home-actions">
     <button class="btn btn-ghost" onclick="showScreen('s-ref')">📖 查看键位表</button>
+    <button class="btn btn-ghost sound-toggle" id="sound-toggle" onclick="toggleSound()" type="button"></button>
   </div>
   <div class="stages-grid" id="stages-grid"></div>
   <p class="home-tip">💡 建议按顺序练习，先掌握声母韵母，再进行音节和词语练习</p>
@@ -870,6 +878,73 @@ function saveProgress(stageId, score) {
   localStorage.setItem('sp_progress', JSON.stringify(p));
 }
 
+// Sound effects
+let audioCtx = null;
+let soundEnabled = localStorage.getItem('sp_sound') !== 'off';
+
+function getAudioContext() {
+  if (!soundEnabled) return null;
+  const AudioCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtor) return null;
+  if (!audioCtx) audioCtx = new AudioCtor();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playTone(freq, duration = 0.08, type = 'sine', gainValue = 0.045, delay = 0) {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const start = ctx.currentTime + delay;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, start);
+  gain.gain.setValueAtTime(0.0001, start);
+  gain.gain.exponentialRampToValueAtTime(gainValue, start + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(start);
+  osc.stop(start + duration + 0.02);
+}
+
+function playSound(name) {
+  if (!soundEnabled) return;
+  if (name === 'tap') {
+    playTone(520, 0.045, 'triangle', 0.018);
+  } else if (name === 'correct') {
+    playTone(660, 0.07, 'sine', 0.038);
+    playTone(920, 0.09, 'sine', 0.034, 0.07);
+  } else if (name === 'wrong') {
+    playTone(180, 0.12, 'sawtooth', 0.026);
+    playTone(130, 0.14, 'sawtooth', 0.022, 0.08);
+  } else if (name === 'complete') {
+    playTone(523, 0.08, 'sine', 0.034);
+    playTone(659, 0.08, 'sine', 0.034, 0.08);
+    playTone(784, 0.16, 'sine', 0.038, 0.16);
+  } else if (name === 'toggle') {
+    playTone(740, 0.06, 'triangle', 0.025);
+  }
+}
+
+function updateSoundToggle() {
+  const btn = document.getElementById('sound-toggle');
+  if (!btn) return;
+  btn.textContent = soundEnabled ? '🔊 音效 开' : '🔇 音效 关';
+  btn.classList.toggle('is-off', !soundEnabled);
+  btn.setAttribute('aria-pressed', soundEnabled ? 'true' : 'false');
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('sp_sound', soundEnabled ? 'on' : 'off');
+  updateSoundToggle();
+  if (soundEnabled) playSound('toggle');
+}
+
 // ═══════════════════════════════════════
 //  KEYBOARD LAYOUT
 // ═══════════════════════════════════════
@@ -1113,6 +1188,7 @@ function handleKey(key) {
   if (!stage) return;
 
   highlightKey(key, 'highlight-pressed', 150);
+  playSound('tap');
 
   // Speed mode: no waitNext, auto-advance on second key
   if (stage.type === 'speed') {
@@ -1157,6 +1233,7 @@ function evaluateAnswer() {
   state.total++;
 
   if (correct) {
+    playSound('correct');
     state.correct++;
     state.score += 10 + state.streak * 2;
     state.streak++;
@@ -1178,6 +1255,7 @@ function evaluateAnswer() {
 
     document.getElementById('question-card').classList.add('correct');
   } else {
+    playSound('wrong');
     state.streak = 0;
     showFeedback(false);
 
@@ -1292,6 +1370,7 @@ function handleSpeedAnswer() {
   state.total++;
 
   if (correct) {
+    playSound('correct');
     state.correct++;
     state.score += 10 + Math.floor(state.streak / 3) * 5;
     state.streak++;
@@ -1303,6 +1382,7 @@ function handleSpeedAnswer() {
     highlightKey(state.typed[0], 'highlight-correct', 300);
     highlightKey(state.typed[1], 'highlight-correct', 300);
   } else {
+    playSound('wrong');
     state.streak = 0;
     document.getElementById('ib2').className = 'input-box wrong';
     document.getElementById('question-card').classList.add('wrong');
@@ -1320,6 +1400,7 @@ function handleSpeedAnswer() {
 //  END & RESULTS
 // ═══════════════════════════════════════
 function endStage() {
+  playSound('complete');
   if (state.speedTimer) {
     clearInterval(state.speedTimer);
     state.speedTimer = null;
@@ -1427,6 +1508,7 @@ function shuffle(arr) {
 function init() {
   renderHome();
   renderReference();
+  updateSoundToggle();
 }
 
 init();
